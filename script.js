@@ -22,37 +22,17 @@ setInterval(updateTime, 1000);
 updateTime();
 
 function updateStats(memberId, name, institution) {
-  const now = new Date();
-  const time = now.toLocaleTimeString();
-  document.getElementById("last-scan").textContent = time;
   document.getElementById("scan-status").textContent = `${name} from ${institution}`;
-  presentCount++;
-  document.getElementById("present-count").textContent = presentCount;
-  const total = parseInt(document.getElementById("total-count").textContent);
-  document.getElementById("attendance-rate").textContent = `${Math.round((presentCount / total) * 100)}%`;
-
-  const row = document.createElement("tr");
-  row.innerHTML = `<td>${memberId}</td><td>${name}</td><td>${institution}</td><td>${time}</td>`;
-  const list = document.getElementById("recent-entries-list");
-  if (list.children[0].textContent.includes("No entries")) list.innerHTML = "";
-  list.prepend(row);
-}
-
-function updateStats(memberId, name, institution) {
-
-  document.getElementById("scan-status").textContent = `${name} from ${institution}`;
-
   presentCount++;
   document.getElementById("present-count").textContent = presentCount;
 
   const total = parseInt(document.getElementById("total-count").textContent);
   document.getElementById("attendance-rate").textContent = `${Math.round((presentCount / total) * 100)}%`;
-
 
   const row = document.createElement("tr");
   row.innerHTML = `<td>${memberId}</td><td>${name}</td><td>${institution}</td>`;
   const list = document.getElementById("recent-entries-list");
-  if (list.children[0].textContent.includes("No entries")) list.innerHTML = "";
+  if (list.children[0] && list.children[0].textContent.includes("No entries")) list.innerHTML = "";
   list.prepend(row);
 }
 
@@ -64,7 +44,6 @@ function logMember(memberId) {
 
   document.getElementById("scan-status").textContent = "Processing...";
 
-
   const memberDetails = memberMap[memberId];
   if (!memberDetails) {
     document.getElementById("scan-status").textContent = "❌ Sorry, this Member ID was not found";
@@ -74,7 +53,6 @@ function logMember(memberId) {
   scannedMembers.add(memberId);
   const { name, institution } = memberDetails;
   updateStats(memberId, name, institution);
-
 
   fetch(`${sheetURL}?memberId=${encodeURIComponent(memberId)}`)
     .then(res => res.json())
@@ -92,7 +70,6 @@ function logMember(memberId) {
       console.error("Fetch error:", error);
     });
 }
-
 
 function handleScan(qrCodeMessage) {
   if (!isScanning) return;
@@ -116,25 +93,37 @@ function getQrBoxSize() {
   return 250;
 }
 
-scanner
-  .start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: getQrBoxSize() },
-    handleScan
-  )
-  .catch(err => {
-    document.getElementById("scan-status").textContent = `Camera error: ${err}`;
-  });
-
-window.addEventListener("resize", () => {
-  scanner.stop().then(() => {
-    scanner.start(
+// Start the scanner
+function startScanner() {
+  scanner
+    .start(
       { facingMode: "environment" },
       { fps: 10, qrbox: getQrBoxSize() },
       handleScan
-    );
-  }).catch(err => console.error("Scanner restart error:", err));
+    )
+    .catch(err => {
+      document.getElementById("scan-status").textContent = `Camera error: ${err}`;
+    });
+}
+
+// Stop and restart the scanner safely
+let lastWindowWidth = window.innerWidth;
+let resizeTimeout;
+window.addEventListener("resize", () => {
+  // Only react to significant width changes (to avoid restarts for keyboard popups, etc.)
+  const nowWidth = window.innerWidth;
+  if (Math.abs(nowWidth - lastWindowWidth) < 40) return;
+  lastWindowWidth = nowWidth;
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    scanner.stop().then(() => {
+      startScanner();
+    }).catch(err => console.error("Scanner restart error:", err));
+  }, 500);
 });
+
+// Start once on load
+startScanner();
 
 document.getElementById("manual-entry-form").addEventListener("submit", function(e) {
   e.preventDefault();
