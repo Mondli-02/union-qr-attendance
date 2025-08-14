@@ -142,7 +142,7 @@ header {
   border: 1px solid #ccc;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 100%) {
   .manual-input {
     flex-direction: column;
     gap: 5px;
