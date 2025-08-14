@@ -4,6 +4,17 @@ let presentCount = 0;
 const scannedMembers = new Set();
 let isScanning = true;
 
+let memberMap = {};
+
+// Load Map-style JSON on page load
+fetch('members_map.json') // ensure this file is in your repo
+  .then(res => res.json())
+  .then(data => {
+    memberMap = data;
+    console.log("Member map loaded:", Object.keys(memberMap).length, "members");
+  })
+  .catch(err => console.error("Error loading member JSON:", err));
+
 function updateTime() {
   const now = new Date();
   document.getElementById("current-time").textContent = now.toLocaleString();
@@ -36,40 +47,41 @@ function logMember(memberId) {
 
   document.getElementById("scan-status").textContent = "Processing...";
 
+  // Lookup member in the JSON first
+  const memberDetails = memberMap[memberId];
+
+  if (!memberDetails) {
+    document.getElementById("scan-status").textContent = "❌ Member ID not found in JSON";
+    return;
+  }
+
+  scannedMembers.add(memberId);
+  const { name, institution } = memberDetails;
+  document.getElementById("scan-status").textContent = `${name} from ${institution}`;
+  updateStats(memberId, name, institution);
+
+  // Continue logging to Google Sheet
   fetch(`${sheetURL}?memberId=${encodeURIComponent(memberId)}`)
-    .then((res) => {
+    .then(res => {
       if (!res.ok) throw new Error("Network response was not ok");
       return res.json();
     })
-    .then((data) => {
-      const scanStatus = document.getElementById("scan-status");
-
+    .then(data => {
       if (data.error) {
+        const scanStatus = document.getElementById("scan-status");
         if (data.error === "Member already logged today") {
           scanStatus.textContent = "⚠️ Member already logged today.";
-        } else if (data.error === "Member not found") {
-          scanStatus.textContent = "❌ Member ID not found.";
         } else {
           scanStatus.textContent = `⚠️ ${data.error}`;
         }
         scanStatus.classList.add("error");
-        return;
       }
-
-      scannedMembers.add(memberId);
-      scanStatus.textContent = `${data.name} from ${data.institution}`;
-      scanStatus.classList.remove("error");
-      updateStats(data.memberId, data.name, data.institution);
     })
-    .catch((error) => {
+    .catch(error => {
       const scanStatus = document.getElementById("scan-status");
       scanStatus.textContent = `❌ Server Error. Please try again.`;
       scanStatus.classList.add("error");
       console.error("Fetch error:", error);
-
-      setTimeout(() => {
-        isScanning = true;
-      }, 1500);
     });
 }
 
@@ -89,11 +101,11 @@ function handleScan(qrCodeMessage) {
 const scanner = new Html5Qrcode("reader");
 scanner
   .start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, handleScan)
-  .catch((err) => {
+  .catch(err => {
     document.getElementById("scan-status").textContent = `Camera error: ${err}`;
   });
 
-document.getElementById("manual-entry-form").addEventListener("submit", function (e) {
+document.getElementById("manual-entry-form").addEventListener("submit", function(e) {
   e.preventDefault();
   let manualId = document.getElementById("manual-id").value.trim();
   if (!manualId) return;
