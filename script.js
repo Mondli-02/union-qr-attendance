@@ -6,6 +6,10 @@ let isScanning = true;
 
 let memberMap = {};
 
+// Track institutions and their counts
+const institutionsPresent = new Set();
+const institutionCountMap = {};
+
 fetch('members_map.json')
   .then(res => res.json())
   .then(data => {
@@ -26,9 +30,32 @@ function updateStats(memberId, name, institution) {
   presentCount++;
   document.getElementById("present-count").textContent = presentCount;
 
-  const total = parseInt(document.getElementById("total-count").textContent);
-  document.getElementById("attendance-rate").textContent = `${Math.round((presentCount / total) * 100)}%`;
+  // --- Institutions Present logic
+  institutionsPresent.add(institution);
+  document.getElementById("institutions-count").textContent = institutionsPresent.size;
 
+  // --- Most Represented Institution logic
+  if (!institutionCountMap[institution]) {
+    institutionCountMap[institution] = 0;
+  }
+  institutionCountMap[institution]++;
+
+  // Find most represented institution
+  let mostInstitution = null;
+  let mostCount = 0;
+  for (const [inst, count] of Object.entries(institutionCountMap)) {
+    if (count > mostCount) {
+      mostCount = count;
+      mostInstitution = inst;
+    }
+  }
+  if (mostInstitution) {
+    document.getElementById("most-represented-institution").textContent = `${mostInstitution} (${mostCount})`;
+  } else {
+    document.getElementById("most-represented-institution").textContent = "N/A";
+  }
+
+  // Update recent entries as before
   const row = document.createElement("tr");
   row.innerHTML = `<td>${memberId}</td><td>${name}</td><td>${institution}</td>`;
   const list = document.getElementById("recent-entries-list");
