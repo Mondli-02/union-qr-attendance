@@ -131,7 +131,7 @@ header {
   display: flex;
   align-items: center;
   gap: 5px;
-  width: fit-content;
+  width: 100%;
 }
 
 .manual-input input[type="text"] {
@@ -142,13 +142,17 @@ header {
   border: 1px solid #ccc;
 }
 
-@media (max-width: 100%) {
+
+@media (max-width: 480px) {
   .manual-input {
     flex-direction: column;
     gap: 5px;
   }
+  .manual-input .scan-btn {
+    width: 100%;
+    margin-top: 5px;
+  }
 }
-
 .scan-btn {
   background: var(--accent);
   color: white;
