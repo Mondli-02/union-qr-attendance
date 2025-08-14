@@ -1,121 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QR Attendance System</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Attendance System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-    <!-- External CSS -->
-    <link rel="stylesheet" href="style.css" />
-  </head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-qrcode" style="font-size: 32px; color: var(--primary)"></i>
+        <h1>ZEHSSCWU QR Attendance System</h1>
+      </div>
+      <div id="current-time"></div>
+    </header>
 
-  <body>
-    <div class="container">
-      <header>
-        <div class="logo">
-          <i
-            class="fas fa-qrcode"
-            style="font-size: 32px; color: var(--primary)"
-          ></i>
-          <h1>ZEHSSCWU QR Attendance System</h1>
-        </div>
-        <div id="current-time" style="font-weight: 500"></div>
-      </header>
-
-      <div class="main-content">
-        <div class="scan-section">
-          <h2 class="section-title">
-            <i class="fas fa-camera"></i> Scan QR Code
-          </h2>
-          <div id="reader"></div>
-          <p id="scan-status">Ready to scan</p>
-          <audio
-            id="beep-sound"
-            src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"
-            preload="auto"
-          ></audio>
-        </div>
-
-        <div class="info-section">
-          <div class="stat-card">
-            <h3>Present Today</h3>
-            <p id="present-count">0</p>
-          </div>
-          <div class="stat-card">
-            <h3>Total Registered</h3>
-            <p id="total-count">46</p>
-          </div>
-          <div class="stat-card">
-            <h3>Attendance Rate</h3>
-            <p id="attendance-rate">0%</p>
-          </div>
-          <div class="stat-card">
-            <h3>Last Scan</h3>
-            <p id="last-scan">--:--</p>
-          </div>
-
-          <form id="manual-entry-form">
-            <label for="manual-id">Manual Entry (Member ID)</label>
-            <div style="display: flex; align-items: center; gap: 5px">
-              <span style="font-weight: 500">ZEH-</span>
-              <input
-                type="text"
-                id="manual-id"
-                placeholder="12345"
-                required
-                aria-label="Manual Member ID"
-                style="flex: 1"
-              />
-            </div>
-            <button
-              type="submit"
-              class="scan-btn"
-              aria-label="Submit Member ID"
-            >
-              Submit
-            </button>
-          </form>
-        </div>
+    <div class="main-content">
+      <div class="scan-section">
+        <h2 class="section-title"><i class="fas fa-camera"></i> Scan QR Code</h2>
+        <div id="reader"></div>
+        <p id="scan-status">Ready to scan</p>
+        <audio id="beep-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
       </div>
 
-      <div class="recent-entries">
-        <h2 class="section-title">
-          <i class="fas fa-history"></i> Recent Entries
-        </h2>
+      <div class="info-section">
+        <div class="stat-card">
+          <h3>Attendants Present</h3>
+          <p id="present-count">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Expected Attendants</h3>
+          <p id="total-count">46</p>
+        </div>
+        <div class="stat-card">
+          <h3>Attendance Rate</h3>
+          <p id="attendance-rate">0%</p>
+        </div>
+
+        <form id="manual-entry-form">
+          <label for="manual-id">Manual Entry (Member ID)</label>
+          <div class="manual-input">
+            <span>ZEH-</span>
+            <input type="text" id="manual-id" placeholder="12345" required aria-label="Manual Member ID" />
+          </div>
+          <button type="submit" class="scan-btn">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="recent-entries">
+      <h2 class="section-title"><i class="fas fa-history"></i> Recent Entries</h2>
+      <div class="table-container">
         <table class="entries-table">
           <thead>
             <tr>
               <th>Member ID</th>
               <th>Full Name</th>
               <th>Institution</th>
-              <th>Time</th>
             </tr>
           </thead>
           <tbody id="recent-entries-list">
             <tr>
-              <td colspan="4" style="text-align: center; color: #6c757d">
-                No entries yet
-              </td>
+              <td colspan="3" class="no-entries">No entries yet</td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <footer>
-        <p>QR Attendance System &copy; 2025 | Built by Mondlie</p>
-      </footer>
     </div>
 
-    <!-- External JS -->
-    <script src="script.js"></script>
-  </body>
+    <footer>
+      <p>QR Attendance System &copy; 2025 | Built by Mondlie</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
 </html>

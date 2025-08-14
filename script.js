@@ -6,14 +6,13 @@ let isScanning = true;
 
 let memberMap = {};
 
-// Load Map-style JSON on page load
-fetch('members_map.json') // ensure this file is in your repo
+fetch('members_map.json') 
   .then(res => res.json())
   .then(data => {
     memberMap = data;
     console.log("Member map loaded:", Object.keys(memberMap).length, "members");
   })
-  .catch(err => console.error("Error loading member JSON:", err));
+  .catch(err => console.error("Sorry, your Member ID was not found:", err));
 
 function updateTime() {
   const now = new Date();
@@ -23,17 +22,17 @@ setInterval(updateTime, 1000);
 updateTime();
 
 function updateStats(memberId, name, institution) {
-  const now = new Date();
-  const time = now.toLocaleTimeString();
-  document.getElementById("last-scan").textContent = time;
+
   document.getElementById("scan-status").textContent = `${name} from ${institution}`;
+
   presentCount++;
   document.getElementById("present-count").textContent = presentCount;
+
   const total = parseInt(document.getElementById("total-count").textContent);
   document.getElementById("attendance-rate").textContent = `${Math.round((presentCount / total) * 100)}%`;
 
   const row = document.createElement("tr");
-  row.innerHTML = `<td>${memberId}</td><td>${name}</td><td>${institution}</td><td>${time}</td>`;
+  row.innerHTML = `<td>${memberId}</td><td>${name}</td><td>${institution}</td>`;
   const list = document.getElementById("recent-entries-list");
   if (list.children[0].textContent.includes("No entries")) list.innerHTML = "";
   list.prepend(row);
@@ -47,33 +46,23 @@ function logMember(memberId) {
 
   document.getElementById("scan-status").textContent = "Processing...";
 
-  // Lookup member in the JSON first
   const memberDetails = memberMap[memberId];
-
   if (!memberDetails) {
-    document.getElementById("scan-status").textContent = "❌ Member ID not found in JSON";
+    document.getElementById("scan-status").textContent = "❌ Sorry, Member ID not found";
     return;
   }
 
   scannedMembers.add(memberId);
   const { name, institution } = memberDetails;
-  document.getElementById("scan-status").textContent = `${name} from ${institution}`;
   updateStats(memberId, name, institution);
 
-  // Continue logging to Google Sheet
+
   fetch(`${sheetURL}?memberId=${encodeURIComponent(memberId)}`)
-    .then(res => {
-      if (!res.ok) throw new Error("Network response was not ok");
-      return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
       if (data.error) {
         const scanStatus = document.getElementById("scan-status");
-        if (data.error === "Member already logged today") {
-          scanStatus.textContent = "⚠️ Member already logged today.";
-        } else {
-          scanStatus.textContent = `⚠️ ${data.error}`;
-        }
+        scanStatus.textContent = `⚠️ ${data.error}`;
         scanStatus.classList.add("error");
       }
     })
@@ -99,11 +88,34 @@ function handleScan(qrCodeMessage) {
 }
 
 const scanner = new Html5Qrcode("reader");
+
+function getQrBoxSize() {
+  const width = window.innerWidth;
+  if (width < 480) return 180;
+  if (width < 768) return 220;
+  return 250;
+}
+
 scanner
-  .start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, handleScan)
+  .start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: getQrBoxSize() },
+    handleScan
+  )
   .catch(err => {
     document.getElementById("scan-status").textContent = `Camera error: ${err}`;
   });
+
+
+window.addEventListener("resize", () => {
+  scanner.stop().then(() => {
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: getQrBoxSize() },
+      handleScan
+    );
+  }).catch(err => console.error("Scanner restart error:", err));
+});
 
 document.getElementById("manual-entry-form").addEventListener("submit", function(e) {
   e.preventDefault();
