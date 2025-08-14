@@ -55,8 +55,8 @@ header {
 .scan-section,
 .info-section,
 .recent-entries {
-  margin: 15px;
   background: white;
+  margin: 15px;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -88,7 +88,6 @@ header {
   justify-content: center;
 }
 
-/* Make QR box smaller on very small screens */
 @media (max-width: 480px) {
   #reader {
     min-height: 200px;
@@ -132,19 +131,28 @@ header {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 10px;
 }
 
 .manual-input span {
   font-weight: 500;
 }
 
-input[type="text"] {
+.manual-input input[type="text"] {
   flex: 1;
   padding: 12px;
+  font-size: 16px;
   border-radius: 8px;
   border: 1px solid #ccc;
-  font-size: 16px;
+}
+
+@media (max-width: 480px) {
+  .manual-input {
+    flex-direction: column;
+    gap: 5px;
+  }
+  .manual-input span {
+    display: block;
+  }
 }
 
 .scan-btn {
@@ -152,6 +160,7 @@ input[type="text"] {
   color: white;
   border: none;
   padding: 12px;
+  margin-top: 15px;
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;

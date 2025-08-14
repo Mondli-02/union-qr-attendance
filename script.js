@@ -6,13 +6,13 @@ let isScanning = true;
 
 let memberMap = {};
 
-fetch('members_map.json') 
+fetch('members_map.json')
   .then(res => res.json())
   .then(data => {
     memberMap = data;
     console.log("Member map loaded:", Object.keys(memberMap).length, "members");
   })
-  .catch(err => console.error("Sorry, your Member ID was not found:", err));
+  .catch(err => console.error("Error loading member JSON:", err));
 
 function updateTime() {
   const now = new Date();
@@ -20,6 +20,23 @@ function updateTime() {
 }
 setInterval(updateTime, 1000);
 updateTime();
+
+function updateStats(memberId, name, institution) {
+  const now = new Date();
+  const time = now.toLocaleTimeString();
+  document.getElementById("last-scan").textContent = time;
+  document.getElementById("scan-status").textContent = `${name} from ${institution}`;
+  presentCount++;
+  document.getElementById("present-count").textContent = presentCount;
+  const total = parseInt(document.getElementById("total-count").textContent);
+  document.getElementById("attendance-rate").textContent = `${Math.round((presentCount / total) * 100)}%`;
+
+  const row = document.createElement("tr");
+  row.innerHTML = `<td>${memberId}</td><td>${name}</td><td>${institution}</td><td>${time}</td>`;
+  const list = document.getElementById("recent-entries-list");
+  if (list.children[0].textContent.includes("No entries")) list.innerHTML = "";
+  list.prepend(row);
+}
 
 function updateStats(memberId, name, institution) {
 
@@ -31,6 +48,7 @@ function updateStats(memberId, name, institution) {
   const total = parseInt(document.getElementById("total-count").textContent);
   document.getElementById("attendance-rate").textContent = `${Math.round((presentCount / total) * 100)}%`;
 
+
   const row = document.createElement("tr");
   row.innerHTML = `<td>${memberId}</td><td>${name}</td><td>${institution}</td>`;
   const list = document.getElementById("recent-entries-list");
@@ -40,15 +58,16 @@ function updateStats(memberId, name, institution) {
 
 function logMember(memberId) {
   if (scannedMembers.has(memberId)) {
-    document.getElementById("scan-status").textContent = "Already scanned";
+    document.getElementById("scan-status").textContent = "Member present";
     return;
   }
 
   document.getElementById("scan-status").textContent = "Processing...";
 
+
   const memberDetails = memberMap[memberId];
   if (!memberDetails) {
-    document.getElementById("scan-status").textContent = "❌ Sorry, Member ID not found";
+    document.getElementById("scan-status").textContent = "❌ Sorry, this Member ID was not found";
     return;
   }
 
@@ -73,6 +92,7 @@ function logMember(memberId) {
       console.error("Fetch error:", error);
     });
 }
+
 
 function handleScan(qrCodeMessage) {
   if (!isScanning) return;
@@ -106,7 +126,6 @@ scanner
     document.getElementById("scan-status").textContent = `Camera error: ${err}`;
   });
 
-
 window.addEventListener("resize", () => {
   scanner.stop().then(() => {
     scanner.start(
@@ -127,7 +146,7 @@ document.getElementById("manual-entry-form").addEventListener("submit", function
   }
 
   if (scannedMembers.has(manualId)) {
-    document.getElementById("scan-status").textContent = "Already scanned";
+    document.getElementById("scan-status").textContent = "Member present";
   } else {
     beep.currentTime = 0;
     beep.play();
