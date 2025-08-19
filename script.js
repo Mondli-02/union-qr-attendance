@@ -30,28 +30,36 @@ function updateStats(memberId, name, institution) {
   presentCount++;
   document.getElementById("present-count").textContent = presentCount;
 
-  // --- Institutions Present logic
-  institutionsPresent.add(institution);
-  document.getElementById("institutions-count").textContent = institutionsPresent.size;
+  // --- Institutions Present logic ---
+  // Only count non-empty institutions
+  if (institution && institution.trim()) {
+    const trimmedInstitution = institution.trim();
+    institutionsPresent.add(trimmedInstitution);
+    document.getElementById("institutions-count").textContent = institutionsPresent.size;
 
-  // --- Most Represented Institution logic
-  if (!institutionCountMap[institution]) {
-    institutionCountMap[institution] = 0;
-  }
-  institutionCountMap[institution]++;
-
-  // Find most represented institution
-  let mostInstitution = null;
-  let mostCount = 0;
-  for (const [inst, count] of Object.entries(institutionCountMap)) {
-    if (count > mostCount) {
-      mostCount = count;
-      mostInstitution = inst;
+    // --- Most Represented Institution logic ---
+    if (!institutionCountMap[trimmedInstitution]) {
+      institutionCountMap[trimmedInstitution] = 0;
     }
-  }
-  if (mostInstitution) {
-    document.getElementById("most-represented-institution").textContent = `${mostInstitution} (${mostCount})`;
+    institutionCountMap[trimmedInstitution]++;
+
+    // Find most represented institution
+    let mostInstitution = null;
+    let mostCount = 0;
+    for (const [inst, count] of Object.entries(institutionCountMap)) {
+      if (inst && inst.trim() && count > mostCount) {
+        mostCount = count;
+        mostInstitution = inst;
+      }
+    }
+    if (mostInstitution) {
+      document.getElementById("most-represented-institution").textContent = `${mostInstitution} (${mostCount})`;
+    } else {
+      document.getElementById("most-represented-institution").textContent = "N/A";
+    }
   } else {
+    // If institution is missing, do not increment stats, but still update counts in UI to avoid confusion
+    document.getElementById("institutions-count").textContent = institutionsPresent.size;
     document.getElementById("most-represented-institution").textContent = "N/A";
   }
 
